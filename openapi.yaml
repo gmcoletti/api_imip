@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: API Solicitação Atendimento
+  description: |
+    API em **PHP 8.5** para consulta de solicitação de atendimento no PostgreSQL.
+    Autenticação via Bearer Token no header `Authorization`.
+    Guia de implantação: veja o arquivo `LEIA-ME.md`.
+  version: 1.0.0
+
+
+servers:
+  - url: /
+    description: Servidor local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+      description: Token fixo configurado no .env (API_BEARER_TOKEN)
+
+  schemas:
+    SolicitacaoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        numero_atendimento:
+          type: string
+          example: "123456"
+        total:
+          type: integer
+          example: 1
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            description: Colunas retornadas pelo SELECT configurado no .env
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Não autorizado. Informe o header Authorization: Bearer <token>.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/solicitacao-atendimento.php:
+    get:
+      tags:
+        - Solicitação Atendimento
+      summary: Consultar solicitação de atendimento
+      description: |
+        Executa o SQL definido na variável `SQL` do `.env`, substituindo
+        `:numero_atendimento` pelo valor informado, e retorna o resultado em JSON.
+      parameters:
+        - name: numero_atendimento
+          in: query
+          required: true
+          description: Número do atendimento a consultar
+          schema:
+            type: string
+            example: "123456"
+      responses:
+        "200":
+          description: Consulta realizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolicitacaoResponse"
+        "400":
+          description: Parâmetro obrigatório ausente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Token inválido ou ausente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Erro interno / banco de dados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Solicitação Atendimento
+      summary: Consultar solicitação de atendimento (POST)
+      description: |
+        Mesmo comportamento do GET, recebendo `numero_atendimento` no body JSON.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - numero_atendimento
+              properties:
+                numero_atendimento:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: Consulta realizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolicitacaoResponse"
+        "400":
+          description: Parâmetro obrigatório ausente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Token inválido ou ausente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Erro interno / banco de dados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
